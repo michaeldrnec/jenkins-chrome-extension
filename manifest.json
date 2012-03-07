@@ -1,5 +1,5 @@
 {
-    "name": "Jenkins Extension",
+    "name": "Jenkins Extension 1",
     "version": "0.9.3",
     "description": "This Extensions monitors Jenkins.",
     "icons": { "128": "icon128.png" },
@@ -7,7 +7,7 @@
     "background_page": "background.html",
     "browser_action": {
        "default_icon": "icon.png",
-       "default_title": "Jenkins",
+       "default_title": "Jenkins2",
        "popup" : "status.html"
     },
     "permissions": [

@@ -1,5 +1,6 @@
 var hudson = hudson || {};
 hudson.results = { lastUpdate : 'never' };
+hudson.refreshTimerId = undefined;
 
 hudson.open = function() {
     function sameUrl(orig, other) {
@@ -26,6 +27,7 @@ hudson.open = function() {
 hudson.init = function (conf, results) {
     var xhr = undefined,
         timeoutId = undefined,
+		ignoreList = conf.ignoreList().split(","),
         successColors = /(blue|grey|disabled)/,
         build = {
             ok :   {    msg : "OK",     color : [0, 128, 0, 255] },
@@ -45,11 +47,16 @@ hudson.init = function (conf, results) {
         results.error = msg;
         setState(build.unknown, msg);
     }
+	
+	var isJobSuccess = function(job) {
+		if (ignoreList.indexOf(job.name) >= 0) {
+			return true;
+		}
+		return successColors.test(job.color);
+	};
 
-    function isSuccess(jobs) {
-        return jobs.every(function (job) {
-            return successColors.test(job.color);
-        });
+    function areAllJobsSuccessful(jobs) {
+        return jobs.every(isJobSuccess);
     }
 
     function timeout () {
@@ -61,8 +68,14 @@ hudson.init = function (conf, results) {
     }
 
     function newRequest() {
-        window.setTimeout(start, 60 * 1000 * conf.pollIntervall());
+        hudson.refreshTimerId = window.setTimeout(start, 60 * 1000 * conf.pollIntervall());
     }
+	
+	this.resetTimer = function() {
+	};
+	
+	function clearTimer() {
+	}
 
     function start() {
         xhr = new XMLHttpRequest();
@@ -97,16 +110,24 @@ hudson.init = function (conf, results) {
             return;
         }
         results.error = undefined;
-        if (isSuccess(results.hudson.jobs)) {
+        if (areAllJobsSuccessful(results.hudson.jobs)) {
             setState(build.ok, "Build OK");
         } else {
             setState(build.failed, "Build Failed!");
         }
     }
-
-    return function () {
-        setState(build.unknown, "Build status unknown");
-        start();
-    };
+	
+	return {
+		init : function () {
+			results = { lastUpdate : 'never' };
+			setState(build.unknown, "Build status unknown");
+			start();
+		},
+		
+		reset : function () {
+			window.clearTimeout(hudson.refreshTimer);
+			start();
+		}
+	};
 
 }(hudson.conf, hudson.results);

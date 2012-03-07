@@ -17,6 +17,10 @@ hudson.conf = function () {
         }
         localStorage.hudsonUrl = url;
     }
+	
+	function setIconSize(size) {
+		localStorage.iconSize = size;
+	}
 
     function get(name, defaultValue) {
         return function() {
@@ -26,17 +30,30 @@ hudson.conf = function () {
             return defaultValue;
         }
     }
+	
+	function setIgnoreList(checkList) {
+		localStorage.ignoreList = checkList;
+	}
+	
+	function setSuccessColor(color) {
+		localStorage.successColor = color;
+	}
 
     return {
         pollIntervall : get('pollIntervall', default_pollIntervall),
         hudsonURL : get('hudsonUrl', default_url), 
+		ignoreList: get('ignoreList', ""),
+		iconSize: get('iconSize', "medium"),
+		successColor: get('successColor', "blue"),
         set : function (values) {
             setPollIntervall(values.pollIntervall);
             setHudsonURL(values.hudsonURL);
+			setIgnoreList(values.ignoreList);
+			setIconSize(values.iconSize);
+			setSuccessColor(values.successColor);
         },
         apiURL : function() {
             return this.hudsonURL() + "api/json/";
         }
     }
 }();
-

@@ -34,14 +34,19 @@
 
     }
 </style>
+<script src="conf.js" ></script>
 <script src="status.js"></script>
 </head>
-<body onload="hudson.status.show()">
+<body>
+<div>
+    <span id="options"></span> | <span><a href="" id="refresh">Refresh</a></span>
+</div>
+<hr />
 <div id="content">
     <span id="heading" class="heading">Loading...</span>
 </div>
 <div>
-    <span id="options"></span>
+	<span id="lastUpdate"></span>
 </div>
 </body>
 </html>

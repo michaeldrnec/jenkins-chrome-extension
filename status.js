@@ -1,6 +1,6 @@
 var hudson = hudson || {};
 
-hudson.status = function() {
+hudson.status = function(conf) {
     
     function showUrl(evt) {
         var url = evt.currentTarget.href,
@@ -22,26 +22,40 @@ hudson.status = function() {
 
     function asIcon(result) {
         var icon = document.createElement('img'),
-            name = result.color;
+            name = result.color,
+			extension = ".png";
         if (name === 'aborted' || name === 'disabled') {
             name = 'grey';
         }
-        icon.src = name + ".gif";
+		if (name == 'blue') {
+			name = conf.successColor();
+		}
+		if (name == 'blue_anime') {
+			name = conf.successColor() + "_anime";
+		}
+		if (name.search("anime") >= 0) {
+			extension = ".gif";
+		}
+		var size = conf.iconSize();
+        icon.src = "images/" + size + "/" + name + extension;
         return icon;
     }
 
     function createList(jobs) {
         var list = document.createElement('table');
+		var ignoreList = conf.ignoreList().split(",");
         jobs.forEach(function(r) {
-            var tr = document.createElement('tr'), 
-                tdIcon = document.createElement('td'),
-                tdName = document.createElement('td');
-            tr.className = "feedList";
-            tdIcon.appendChild(asIcon(r));
-            tdName.appendChild(link(r.url, r.name));
-            tr.appendChild(tdIcon);
-            tr.appendChild(tdName);
-            list.appendChild(tr);
+			if (ignoreList.indexOf(r.name) == -1) {
+				var tr = document.createElement('tr'), 
+					tdIcon = document.createElement('td'),
+					tdName = document.createElement('td');
+				tr.className = "feedList";
+				tdIcon.appendChild(asIcon(r));
+				tdName.appendChild(link(r.url, r.name));
+				tr.appendChild(tdIcon);
+				tr.appendChild(tdName);
+				list.appendChild(tr);
+			}
         });
         return list;
     }
@@ -51,11 +65,11 @@ hudson.status = function() {
             minutes = Math.round((now.getTime() - d.getTime()) / (1000 * 60));
         return d.toLocaleTimeString() +  " (" + minutes + " minutes ago)";
     }
-
-    return { show : function () {
+	
+		return { show : function () {
         var hudson = chrome.extension.getBackgroundPage().hudson, 
             options = document.getElementById('options'), 
-            lastUpdate = document.createElement('div'), 
+            lastUpdate = document.getElementById('lastUpdate'), 
             content = document.getElementById('content'),
             heading = document.getElementById('heading'),
             url = document.createElement('div');
@@ -75,8 +89,19 @@ hudson.status = function() {
         }
         
         lastUpdate.innerText = "Last Update: " + timeSince(hudson.results.lastUpdate);
-        options.appendChild(lastUpdate);
         options.appendChild(link(chrome.extension.getURL('options.html'), 'Options'));
+
     }}
-}();
+}(hudson.conf);
+
+window.onload = function() {
+hudson.status.show();
+document.getElementById('refresh').onclick = function() {
+	chrome.extension.getBackgroundPage().hudson.init.reset();
+	hudson.status.show();
+}
+};
+//document.ready(function () {
+//	hudson.status.show();
+//});
 
